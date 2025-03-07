@@ -43,7 +43,7 @@ jobs:
           echo "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" >> $GITHUB_PATH
 
       - name: Build Zed (Debug)
-        run: cargo build
+        run: cargo build --release
 
       - name: Run Tests
         run: cargo test --workspace
