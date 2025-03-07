@@ -1,0 +1,50 @@
+name: Build Zed for Windows
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Install Dependencies
+        shell: powershell
+        run: |
+          # Install Visual Studio Build Tools
+          choco install visualstudio2022buildtools --params "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CMake.Project" -y
+          
+          # Install CMake
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+          
+          # Install Windows SDK
+          choco install windows-sdk-10.1 -y
+
+          # Install PostgreSQL for collab backend (optional)
+          choco install postgresql -y
+          
+          # Enable long path support
+          Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+
+      - name: Add VS Build Tools to Path
+        shell: bash
+        run: |
+          echo "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" >> $GITHUB_PATH
+
+      - name: Build Zed (Debug)
+        run: cargo build
+
+      - name: Run Tests
+        run: cargo test --workspace
+
